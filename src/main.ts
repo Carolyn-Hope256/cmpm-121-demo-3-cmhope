@@ -1,4 +1,3 @@
-
 const app: HTMLDivElement = document.querySelector("#app")!;
 
 const testbutton: HTMLButtonElement = document.createElement("button");
