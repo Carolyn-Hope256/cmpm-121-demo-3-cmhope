@@ -1,5 +1,5 @@
 // @deno-types="npm:@types/leaflet@^1.9.14"
-import leaflet from "leaflet";
+import leaflet, { latLng } from "leaflet";
 
 // Style sheets
 import "leaflet/dist/leaflet.css";
@@ -80,13 +80,13 @@ WBut?.addEventListener("click", () => {
   movePlayer(-1, 0);
 });
 
-createCache(0, 0, 4);
+createCache(1, 0, 4);
 
 function createCache(x: number, y: number, coins: number) {
   const home = Oakes;
   const box = leaflet.latLngBounds([
-    [home.lat + (x - 0.5) * degPerTile, home.lng + (y - 0.5) * degPerTile],
-    [home.lat + (x + 0.5) * degPerTile, home.lng + (y + 0.5) * degPerTile],
+    [home.lat + (y - 0.5) * degPerTile, home.lng + (x - 0.5) * degPerTile],
+    [home.lat + (y + 0.5) * degPerTile, home.lng + (x + 0.5) * degPerTile],
   ]);
 
   const cachebox = leaflet.rectangle(box);
@@ -104,7 +104,17 @@ function createCache(x: number, y: number, coins: number) {
     popupDiv
       .querySelector<HTMLButtonElement>("#take")!
       .addEventListener("click", () => {
-        if (cacheCoins > 0) {
+        if (
+          cacheCoins > 0 &&
+          player
+            .getLatLng()
+            .equals(
+              leaflet.latLng(
+                home.lat + y * degPerTile,
+                home.lng + x * degPerTile
+              )
+            )
+        ) {
           cacheCoins--;
           popupDiv.querySelector<HTMLSpanElement>("#value")!.innerHTML =
             cacheCoins.toString();
@@ -117,7 +127,17 @@ function createCache(x: number, y: number, coins: number) {
     popupDiv
       .querySelector<HTMLButtonElement>("#put")!
       .addEventListener("click", () => {
-        if (playerCoins > 0) {
+        if (
+          playerCoins > 0 &&
+          player
+            .getLatLng()
+            .equals(
+              leaflet.latLng(
+                home.lat + y * degPerTile,
+                home.lng + x * degPerTile
+              )
+            )
+        ) {
           cacheCoins++;
           popupDiv.querySelector<HTMLSpanElement>("#value")!.innerHTML =
             cacheCoins.toString();
