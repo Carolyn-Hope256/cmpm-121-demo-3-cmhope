@@ -9,7 +9,7 @@ import "./style.css";
 import "./leafletWorkaround.ts";
 
 // Deterministic random number generator
-import luck from "./luck.ts";
+import _luck from "./luck.ts";
 
 const app: HTMLDivElement = document.querySelector("#app")!;
 
@@ -26,8 +26,8 @@ const Oakes = leaflet.latLng(36.98949379578401, -122.06277128548504);
 const degPerTile: number = 1e-4;
 
 //Params
-const SpawnArea = 8;
-const cacheSpawnRate = 0.1;
+const _SpawnArea = 8;
+const _cacheSpawnRate = 0.1;
 const MinZoom = 18;
 const MaxZoom = 20;
 
