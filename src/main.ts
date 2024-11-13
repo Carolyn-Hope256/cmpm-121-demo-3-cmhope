@@ -9,7 +9,7 @@ import "./style.css";
 import "./leafletWorkaround.ts";
 
 // Deterministic random number generator
-import _luck from "./luck.ts";
+import luck from "./luck.ts";
 
 const app: HTMLDivElement = document.querySelector("#app")!;
 
@@ -163,8 +163,8 @@ function movePlayer(x: number, y: number) {
 function placeCaches(radius: number, frequency: number, richness: number) {
   for (let i = -radius; i <= radius; i++) {
     for (let j = -radius; j <= radius; j++) {
-      if (Math.random() < frequency) {
-        createCache(i, j, Math.ceil(Math.random() * richness));
+      if (luck([i, j].toString()) < frequency) {
+        createCache(i, j, Math.ceil(luck([i, j].toString() + "coinAmount") * richness));
       }
     }
   }
