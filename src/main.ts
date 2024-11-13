@@ -164,7 +164,11 @@ function placeCaches(radius: number, frequency: number, richness: number) {
   for (let i = -radius; i <= radius; i++) {
     for (let j = -radius; j <= radius; j++) {
       if (luck([i, j].toString()) < frequency) {
-        createCache(i, j, Math.ceil(luck([i, j].toString() + "coinAmount") * richness));
+        createCache(
+          i,
+          j,
+          Math.ceil(luck([i, j].toString() + "coinAmount") * richness),
+        );
       }
     }
   }
