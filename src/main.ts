@@ -26,8 +26,9 @@ const Oakes = leaflet.latLng(36.98949379578401, -122.06277128548504);
 const degPerTile: number = 1e-4;
 
 //Params
-const _SpawnArea = 8;
-const _cacheSpawnRate = 0.1;
+const SpawnArea = 8;
+const cacheSpawnRate = 0.1;
+const cacheRichness = 4;
 const MinZoom = 18;
 const MaxZoom = 20;
 
@@ -80,7 +81,7 @@ WBut?.addEventListener("click", () => {
   movePlayer(-1, 0);
 });
 
-createCache(1, 0, 4);
+placeCaches(SpawnArea, cacheSpawnRate, cacheRichness);
 
 function createCache(x: number, y: number, coins: number) {
   const home = Oakes;
@@ -157,4 +158,14 @@ function movePlayer(x: number, y: number) {
       player.getLatLng().lng + x * degPerTile,
     ),
   );
+}
+
+function placeCaches(radius: number, frequency: number, richness: number){
+  for(let i = -radius; i <= radius; i++ ){
+    for(let j = -radius; j <= radius; j++ ){
+      if(Math.random() < frequency){
+        createCache(i, j, Math.ceil(Math.random()*richness));
+      }
+    }
+  }
 }
