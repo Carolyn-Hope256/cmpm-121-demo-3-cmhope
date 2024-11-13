@@ -135,6 +135,6 @@ function movePlayer(x: number, y: number) {
     leaflet.latLng(
       player.getLatLng().lat + y * degPerTile,
       player.getLatLng().lng + x * degPerTile,
-    )
+    ),
   );
 }
