@@ -111,8 +111,8 @@ function createCache(x: number, y: number, coins: number) {
             .equals(
               leaflet.latLng(
                 home.lat + y * degPerTile,
-                home.lng + x * degPerTile
-              )
+                home.lng + x * degPerTile,
+              ),
             )
         ) {
           cacheCoins--;
@@ -134,8 +134,8 @@ function createCache(x: number, y: number, coins: number) {
             .equals(
               leaflet.latLng(
                 home.lat + y * degPerTile,
-                home.lng + x * degPerTile
-              )
+                home.lng + x * degPerTile,
+              ),
             )
         ) {
           cacheCoins++;
