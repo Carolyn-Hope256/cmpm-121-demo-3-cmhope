@@ -160,11 +160,11 @@ function movePlayer(x: number, y: number) {
   );
 }
 
-function placeCaches(radius: number, frequency: number, richness: number){
-  for(let i = -radius; i <= radius; i++ ){
-    for(let j = -radius; j <= radius; j++ ){
-      if(Math.random() < frequency){
-        createCache(i, j, Math.ceil(Math.random()*richness));
+function placeCaches(radius: number, frequency: number, richness: number) {
+  for (let i = -radius; i <= radius; i++) {
+    for (let j = -radius; j <= radius; j++) {
+      if (Math.random() < frequency) {
+        createCache(i, j, Math.ceil(Math.random() * richness));
       }
     }
   }
