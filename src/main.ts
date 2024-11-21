@@ -10,6 +10,8 @@ import "./leafletWorkaround.ts";
 
 // Deterministic random number generator
 import luck from "./luck.ts";
+//import { Cell } from "./board.ts";
+import { Board } from "./board.ts";
 
 const app: HTMLDivElement = document.querySelector("#app")!;
 
@@ -51,13 +53,16 @@ leaflet
   })
   .addTo(map);
 
+//Board setup
+const _board: Board = new Board(degPerTile, 8, 0.1);
+
 //Player marker and UI setup
 const player = leaflet.marker(Oakes);
 player.bindTooltip("You are here.");
 player.addTo(map);
 
 const statusPanel = document.querySelector<HTMLDivElement>("#statusPanel")!; // element `statusPanel` is defined in index.html
-let playerCoins: number = 0;
+const playerCoins: string[] = [];
 statusPanel.innerHTML = `You have ${playerCoins} coins.`;
 
 //button setup. make this more elegant later
@@ -83,7 +88,7 @@ WBut?.addEventListener("click", () => {
 
 placeCaches(SpawnArea, cacheSpawnRate, cacheRichness);
 
-function createCache(x: number, y: number, coins: number) {
+function createCache(x: number, y: number) {
   const home = Oakes;
   const box = leaflet.latLngBounds([
     [home.lat + (y - 0.5) * degPerTile, home.lng + (x - 0.5) * degPerTile],
@@ -93,12 +98,12 @@ function createCache(x: number, y: number, coins: number) {
   const cachebox = leaflet.rectangle(box);
   cachebox.addTo(map);
 
-  let cacheCoins: number = coins;
+  const cacheCoins: string[] = ["o"];
 
   cachebox.bindPopup(() => {
     const popupDiv = document.createElement("div");
     popupDiv.innerHTML = `
-                <div>There is a cache here at "${x},${y}". It has <span id="value">${coins}</span> coins.</div>
+                <div>There is a cache here at "${x},${y}". It has <span id="value">${cacheCoins.length}</span> coins.</div>
                 <button id="take">take</button><button id="put">put</button>`;
 
     //Button for taking coins
@@ -106,7 +111,7 @@ function createCache(x: number, y: number, coins: number) {
       .querySelector<HTMLButtonElement>("#take")!
       .addEventListener("click", () => {
         if (
-          cacheCoins > 0 &&
+          cacheCoins.length > 0 &&
           player
             .getLatLng()
             .equals(
@@ -116,11 +121,12 @@ function createCache(x: number, y: number, coins: number) {
               ),
             )
         ) {
-          cacheCoins--;
           popupDiv.querySelector<HTMLSpanElement>("#value")!.innerHTML =
-            cacheCoins.toString();
-          playerCoins++;
-          statusPanel.innerHTML = `You have ${playerCoins} coins.`;
+            cacheCoins.length.toString();
+          const coin = cacheCoins.pop();
+          playerCoins.push(coin ? coin : "");
+          console.log(coin);
+          statusPanel.innerHTML = `You have ${playerCoins.length} coins.`;
         }
       });
 
@@ -129,7 +135,7 @@ function createCache(x: number, y: number, coins: number) {
       .querySelector<HTMLButtonElement>("#put")!
       .addEventListener("click", () => {
         if (
-          playerCoins > 0 &&
+          playerCoins.length > 0 &&
           player
             .getLatLng()
             .equals(
@@ -139,10 +145,11 @@ function createCache(x: number, y: number, coins: number) {
               ),
             )
         ) {
-          cacheCoins++;
           popupDiv.querySelector<HTMLSpanElement>("#value")!.innerHTML =
             cacheCoins.toString();
-          playerCoins--;
+          const coin = playerCoins.pop();
+          cacheCoins.push(coin ? coin : "");
+          console.log(coin);
           statusPanel.innerHTML = `You have ${playerCoins} coins.`;
         }
       });
@@ -160,14 +167,13 @@ function movePlayer(x: number, y: number) {
   );
 }
 
-function placeCaches(radius: number, frequency: number, richness: number) {
+function placeCaches(radius: number, frequency: number, _richness: number) {
   for (let i = -radius; i <= radius; i++) {
     for (let j = -radius; j <= radius; j++) {
       if (luck([i, j].toString()) < frequency) {
         createCache(
           i,
           j,
-          Math.ceil(luck([i, j].toString() + "coinAmount") * richness),
         );
       }
     }
