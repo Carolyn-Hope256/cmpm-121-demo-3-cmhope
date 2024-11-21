@@ -10,14 +10,21 @@ export class Board {
   readonly tileWidth: number;
   readonly tileVisibilityRadius: number;
   readonly cacheChance: number;
+  readonly cacheRichness: number;
 
   private readonly knownCells: Map<string, Cell>;
 
-  constructor(tileWidth: number, tileVisibilityRadius: number, luck: number) {
+  constructor(
+    tileWidth: number,
+    tileVisibilityRadius: number,
+    luck: number,
+    richness: number,
+  ) {
     this.tileWidth = tileWidth;
     this.tileVisibilityRadius = tileVisibilityRadius;
     this.cacheChance = luck;
     this.knownCells = new Map();
+    this.cacheRichness = richness;
   }
 
   private getCanonicalCell(cell: Cell): Cell {
@@ -25,12 +32,27 @@ export class Board {
     const key = [i, j].toString();
     if (!this.knownCells.has(key)) {
       const c: Cell = { i: i, j: j, cache: "" };
-      if (luck([i, j].toString()) < this.cacheChance) {
-        c.cache = JSON.stringify([i + ":" + j + "#0"]);
+      const seed: number = luck([i, j].toString());
+      if (seed < this.cacheChance) {
+        c.cache = this.getCoinCode(
+          i,
+          j,
+          Math.ceil(
+            luck([i, j].toString() + "coinAmount") * this.cacheRichness,
+          ),
+        );
       }
       this.knownCells.set(key, c);
     }
     return this.knownCells.get(key)!;
+  }
+
+  private getCoinCode(i: number, j: number, numCoins: number): string {
+    const coins: string[] = [];
+    for (let n = 0; n < numCoins; n++) {
+      coins[n] = i + ":" + j + "#" + n;
+    }
+    return (JSON.stringify(coins));
   }
 
   getCellForPoint(point: leaflet.LatLng): Cell {

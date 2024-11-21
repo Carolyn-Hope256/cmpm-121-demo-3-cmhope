@@ -9,8 +9,8 @@ import "./style.css";
 import "./leafletWorkaround.ts";
 
 // Deterministic random number generator
-import luck from "./luck.ts";
-//import { Cell } from "./board.ts";
+import _luck from "./luck.ts";
+import { Cell } from "./board.ts";
 import { Board } from "./board.ts";
 
 const app: HTMLDivElement = document.querySelector("#app")!;
@@ -54,7 +54,12 @@ leaflet
   .addTo(map);
 
 //Board setup
-const _board: Board = new Board(degPerTile, 8, 0.1);
+const mainBoard: Board = new Board(
+  degPerTile,
+  SpawnArea,
+  cacheSpawnRate,
+  cacheRichness,
+);
 
 //Player marker and UI setup
 const player = leaflet.marker(Oakes);
@@ -86,24 +91,24 @@ WBut?.addEventListener("click", () => {
   movePlayer(-1, 0);
 });
 
-placeCaches(SpawnArea, cacheSpawnRate, cacheRichness);
+//initalize caches
+loadCaches(mainBoard, Oakes);
 
-function createCache(x: number, y: number) {
-  const home = Oakes;
-  const box = leaflet.latLngBounds([
-    [home.lat + (y - 0.5) * degPerTile, home.lng + (x - 0.5) * degPerTile],
-    [home.lat + (y + 0.5) * degPerTile, home.lng + (x + 0.5) * degPerTile],
-  ]);
+//Given a board and a cell on it, create an interactable cache
+function createCache(board: Board, cell: Cell) {
+  const box = board.getCellBounds(cell);
 
   const cachebox = leaflet.rectangle(box);
   cachebox.addTo(map);
 
-  const cacheCoins: string[] = ["o"];
+  const cacheCoins: string[] = JSON.parse(cell.cache);
 
   cachebox.bindPopup(() => {
     const popupDiv = document.createElement("div");
     popupDiv.innerHTML = `
-                <div>There is a cache here at "${x},${y}". It has <span id="value">${cacheCoins.length}</span> coins.</div>
+                <div>There is a cache here at "${cell.i * degPerTile},${
+      cell.j * degPerTile
+    }". It has <span id="value">${cacheCoins.length}</span> coins.</div>
                 <button id="take">take</button><button id="put">put</button>`;
 
     //Button for taking coins
@@ -116,16 +121,16 @@ function createCache(x: number, y: number) {
             .getLatLng()
             .equals(
               leaflet.latLng(
-                home.lat + y * degPerTile,
-                home.lng + x * degPerTile,
+                cell.i * degPerTile,
+                cell.j * degPerTile,
               ),
             )
         ) {
-          popupDiv.querySelector<HTMLSpanElement>("#value")!.innerHTML =
-            cacheCoins.length.toString();
           const coin = cacheCoins.pop();
           playerCoins.push(coin ? coin : "");
-          console.log(coin);
+          popupDiv.querySelector<HTMLSpanElement>("#value")!.innerHTML =
+            cacheCoins.length.toString();
+          console.log("took coin " + coin);
           statusPanel.innerHTML = `You have ${playerCoins.length} coins.`;
         }
       });
@@ -140,17 +145,17 @@ function createCache(x: number, y: number) {
             .getLatLng()
             .equals(
               leaflet.latLng(
-                home.lat + y * degPerTile,
-                home.lng + x * degPerTile,
+                cell.i * degPerTile,
+                cell.j * degPerTile,
               ),
             )
         ) {
-          popupDiv.querySelector<HTMLSpanElement>("#value")!.innerHTML =
-            cacheCoins.toString();
           const coin = playerCoins.pop();
           cacheCoins.push(coin ? coin : "");
-          console.log(coin);
-          statusPanel.innerHTML = `You have ${playerCoins} coins.`;
+          popupDiv.querySelector<HTMLSpanElement>("#value")!.innerHTML =
+            cacheCoins.length.toString();
+          console.log("placed coin " + coin);
+          statusPanel.innerHTML = `You have ${playerCoins.length} coins.`;
         }
       });
     return popupDiv;
@@ -167,15 +172,12 @@ function movePlayer(x: number, y: number) {
   );
 }
 
-function placeCaches(radius: number, frequency: number, _richness: number) {
-  for (let i = -radius; i <= radius; i++) {
-    for (let j = -radius; j <= radius; j++) {
-      if (luck([i, j].toString()) < frequency) {
-        createCache(
-          i,
-          j,
-        );
-      }
+//given the board and a center point, create/load interactable caches
+function loadCaches(board: Board, point: leaflet.LatLng) {
+  const cells: Cell[] = board.getCellsNearPoint(point);
+  for (let c = 0; c < cells.length; c++) {
+    if (cells[c].cache.length > 0) {
+      createCache(board, cells[c]);
     }
   }
 }
