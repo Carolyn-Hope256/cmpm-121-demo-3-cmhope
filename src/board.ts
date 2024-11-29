@@ -1,5 +1,6 @@
 import leaflet from "leaflet";
 import luck from "./luck.ts";
+import roundDec from "./round.ts";
 export interface Cell {
   readonly i: number;
   readonly j: number;
@@ -11,6 +12,7 @@ export class Board {
   readonly tileVisibilityRadius: number;
   readonly cacheChance: number;
   readonly cacheRichness: number;
+  playerCell: Cell;
 
   private readonly knownCells: Map<string, Cell>;
 
@@ -25,9 +27,11 @@ export class Board {
     this.cacheChance = luck;
     this.knownCells = new Map();
     this.cacheRichness = richness;
+    this.playerCell = { i: 0, j: 0, cache: "" };
   }
 
   private getCanonicalCell(cell: Cell): Cell {
+    console.log(cell.i, cell.j);
     const { i, j } = cell;
     const key = [i, j].toString();
     if (!this.knownCells.has(key)) {
@@ -44,6 +48,7 @@ export class Board {
       }
       this.knownCells.set(key, c);
     }
+    console.log(this.knownCells.size);
     return this.knownCells.get(key)!;
   }
 
@@ -57,8 +62,8 @@ export class Board {
 
   getCellForPoint(point: leaflet.LatLng): Cell {
     return this.getCanonicalCell({
-      i: point.lat / this.tileWidth,
-      j: point.lng / this.tileWidth,
+      i: roundDec(point.lat / this.tileWidth, 4),
+      j: roundDec(point.lng / this.tileWidth, 4),
       cache: "",
     });
   }
@@ -73,6 +78,7 @@ export class Board {
   getCellsNearPoint(point: leaflet.LatLng): Cell[] {
     const resultCells: Cell[] = [];
     const originCell = this.getCellForPoint(point);
+    this.playerCell = originCell;
     for (
       let I = originCell.i - this.tileVisibilityRadius;
       I <= originCell.i + this.tileVisibilityRadius;
@@ -88,5 +94,10 @@ export class Board {
     }
     // ...
     return resultCells;
+  }
+
+  updateCacheCode(cell: Cell) {
+    const cCell: Cell = this.getCanonicalCell(cell);
+    cCell.cache = cell.cache;
   }
 }
