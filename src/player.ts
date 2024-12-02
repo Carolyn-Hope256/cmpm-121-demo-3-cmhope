@@ -8,6 +8,7 @@ export class Player {
   status: HTMLDivElement;
 
   latlng: leaflet.latLng;
+  cellLatlng = leaflet.latLng;
 
   leafMap: leaflet.Map;
   marker: leaflet.Marker;
@@ -34,6 +35,7 @@ export class Player {
     this.decimals = dec;
 
     this.latlng = this.roundLL(ll);
+    this.cellLatlng = this.latlng;
 
     this.coins = [];
 
@@ -71,12 +73,33 @@ export class Player {
     this.status.innerHTML = `You have ${this.coins.length} coins.`;
   }
 
-  move(x: number, y: number) {
+  move(x: number, y: number): boolean {
     this.latlng.lat += y * this.degPerTile;
     this.latlng.lng += x * this.degPerTile;
-    this.latlng = this.roundLL(this.latlng);
+    return (this.setPos());
+  }
+
+  setPos(LL?: leaflet.latLng): boolean {
+    if (LL) {
+      this.latlng = LL;
+    }
 
     this.marker.setLatLng(this.latlng);
-    this.homeBoard.playerCell = this.homeBoard.getCellForPoint(this.latlng);
+
+    //console.log(this.latlng)
+    //console.log(this.roundLL(this.latlng));
+    const oldCellLatLng = this.cellLatlng;
+    this.cellLatlng = this.roundLL(this.latlng);
+
+    console.log(this.cellLatlng);
+    console.log(oldCellLatLng);
+    if (!this.cellLatlng.equals(oldCellLatLng)) {
+      console.log("New Cell Entered");
+      this.homeBoard.playerCell = this.homeBoard.getCellForPoint(
+        this.cellLatlng,
+      );
+      return (true);
+    }
+    return (false);
   }
 }

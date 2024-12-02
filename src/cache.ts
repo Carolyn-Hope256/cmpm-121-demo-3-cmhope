@@ -56,7 +56,7 @@ export class Cache {
         .addEventListener("click", () => {
           if (
             this.cache.length > 0 &&
-            this.board.getCellForPoint(this.player.latlng) == this.motherCell
+            this.board.playerCell == this.motherCell
           ) {
             const coin = this.cache.pop();
             if (coin != null) {
@@ -75,7 +75,7 @@ export class Cache {
         .addEventListener("click", () => {
           if (
             this.player.coins.length > 0 &&
-            this.board.getCellForPoint(this.player.latlng) == this.motherCell
+            this.board.playerCell == this.motherCell
           ) {
             const coin = this.player.popCoin();
             if (coin != null) {

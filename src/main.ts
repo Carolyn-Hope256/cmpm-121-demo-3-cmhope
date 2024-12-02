@@ -34,6 +34,7 @@ const cacheSpawnRate = 0.1;
 const cacheRichness = 4;
 const MinZoom = 18;
 const MaxZoom = 20;
+const TilesPerMove = .25;
 
 //Map Creation
 const map: leaflet.Map = leaflet.map(document.getElementById("map")!, {
@@ -81,34 +82,41 @@ loadCaches(mainBoard, Oakes);
 //button setup. make this more elegant later
 const NBut = document.getElementById("north");
 NBut?.addEventListener("click", () => {
-  player.move(0, 1);
-  unloadCaches();
-  loadCaches(mainBoard, player.latlng);
+  if (player.move(0, TilesPerMove)) {
+    mapUpdate();
+  }
 });
 
 const EBut = document.getElementById("east");
 EBut?.addEventListener("click", () => {
-  player.move(1, 0);
-  unloadCaches();
-  loadCaches(mainBoard, player.latlng);
+  if (player.move(TilesPerMove, 0)) {
+    mapUpdate();
+  }
 });
 
 const SBut = document.getElementById("south");
 SBut?.addEventListener("click", () => {
-  player.move(0, -1);
-  unloadCaches();
-  loadCaches(mainBoard, player.latlng);
+  if (player.move(0, -TilesPerMove)) {
+    mapUpdate();
+  }
 });
 
 const WBut = document.getElementById("west");
 WBut?.addEventListener("click", () => {
-  player.move(-1, 0);
-  unloadCaches();
-  loadCaches(mainBoard, player.latlng);
+  if (player.move(-TilesPerMove, 0)) {
+    mapUpdate();
+  }
 });
+
+//Called whenever the player enters a new tile
+function mapUpdate() {
+  unloadCaches();
+  loadCaches(mainBoard, player.cellLatlng);
+}
 
 //given the board and a center point, create/load interactable caches
 function loadCaches(board: Board, point: leaflet.LatLng) {
+  console.log("Loading Caches");
   const cells: Cell[] = board.getCellsNearPoint(point);
   for (let c = 0; c < cells.length; c++) {
     if (cells[c].cache.length > 0) {
@@ -121,6 +129,7 @@ function loadCaches(board: Board, point: leaflet.LatLng) {
 }
 
 function unloadCaches() {
+  console.log("Unloading Caches");
   for (let i = 0; i < Caches.length; i++) {
     Caches[i].pack();
   }

@@ -31,7 +31,7 @@ export class Board {
   }
 
   private getCanonicalCell(cell: Cell): Cell {
-    console.log(cell.i, cell.j);
+    //console.log(cell.i, cell.j);
     const { i, j } = cell;
     const key = [i, j].toString();
     if (!this.knownCells.has(key)) {
@@ -48,7 +48,7 @@ export class Board {
       }
       this.knownCells.set(key, c);
     }
-    console.log(this.knownCells.size);
+    //console.log(this.knownCells.size);
     return this.knownCells.get(key)!;
   }
 
@@ -92,7 +92,6 @@ export class Board {
         resultCells.push(this.getCanonicalCell({ i: I, j: J, cache: "" }));
       }
     }
-    // ...
     return resultCells;
   }
 
