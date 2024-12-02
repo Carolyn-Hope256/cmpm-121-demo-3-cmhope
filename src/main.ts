@@ -24,11 +24,9 @@ testbutton.onclick = function () {
 
 app.append(testbutton);
 
-//Magic Numbers
+//Params
 const Oakes = leaflet.latLng(36.9894, -122.0627);
 const degPerTile: number = 1e-4;
-
-//Params
 const SpawnArea = 8;
 const cacheSpawnRate = 0.1;
 const cacheRichness = 4;
@@ -75,11 +73,19 @@ const player = new Player(
   4,
 );
 
+let geoPos = false;
+
 //initalize caches
 let Caches: Cache[] = [];
 loadCaches(mainBoard, Oakes);
+requestAnimationFrame(realTimeUpdate);
 
 //button setup. make this more elegant later
+const GeoBut = document.getElementById("sensor");
+GeoBut?.addEventListener("click", () => {
+  geoPos = !geoPos;
+});
+
 const NBut = document.getElementById("north");
 NBut?.addEventListener("click", () => {
   if (player.move(0, TilesPerMove)) {
@@ -107,6 +113,40 @@ WBut?.addEventListener("click", () => {
     mapUpdate();
   }
 });
+
+const CamBut = document.getElementById("Center");
+CamBut?.addEventListener("click", () => {
+  map.panTo(player.latlng);
+});
+
+function realTimeUpdate() { //Called every frame, updates player position when geolocation enabled
+  if (geoPos) {
+    const geo = navigator.geolocation;
+    console.log(geo);
+    if (geo != null) {
+      geo.getCurrentPosition(successCallback, erroCallback);
+    }
+  } else {
+    requestAnimationFrame(realTimeUpdate);
+  }
+}
+
+function successCallback(position: GeolocationPosition) {
+  const curPos: leaflet.LatLng = leaflet.latLng(
+    position.coords.latitude,
+    position.coords.longitude,
+  );
+  if (player.setPos(curPos)) {
+    mapUpdate();
+  }
+  requestAnimationFrame(realTimeUpdate);
+}
+
+function erroCallback(_error: GeolocationPositionError) {
+  geoPos = false;
+  console.log("failed to enable geopositioning.");
+  requestAnimationFrame(realTimeUpdate);
+}
 
 //Called whenever the player enters a new tile
 function mapUpdate() {
