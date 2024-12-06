@@ -78,7 +78,7 @@ let Caches: Cache[] = [];
 load();
 
 //Place caches
-loadCaches(mainBoard, Oakes);
+loadCaches(mainBoard, player.cellLatlng);
 
 requestAnimationFrame(realTimeUpdate);
 
