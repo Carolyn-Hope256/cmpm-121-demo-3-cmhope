@@ -15,7 +15,6 @@ export class Cache {
   motherCell: Cell;
   player: Player;
   box: leaflet.rectangle;
-  //boxDiv: HTMLDivElement;
 
   constructor(
     d: Document,
@@ -66,6 +65,7 @@ export class Cache {
             popupDiv.querySelector<HTMLSpanElement>("#value")!.innerHTML = this
               .cache.length.toString();
             console.log("took coin " + coin);
+            this.save();
           }
         });
 
@@ -85,6 +85,7 @@ export class Cache {
             popupDiv.querySelector<HTMLSpanElement>("#value")!.innerHTML = this
               .cache.length.toString();
             console.log("placed coin " + coin);
+            this.save();
           }
         });
 
@@ -92,8 +93,12 @@ export class Cache {
     });
   }
 
-  pack() {
+  save() {
     this.motherCell.cache = JSON.stringify(this.cache);
+  }
+
+  pack() {
+    this.save();
     this.box.remove();
   }
 }

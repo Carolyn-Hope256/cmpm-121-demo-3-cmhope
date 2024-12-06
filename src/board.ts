@@ -14,7 +14,7 @@ export class Board {
   readonly cacheRichness: number;
   playerCell: Cell;
 
-  private readonly knownCells: Map<string, Cell>;
+  private knownCells: Map<string, Cell>;
 
   constructor(
     tileWidth: number,
@@ -30,13 +30,15 @@ export class Board {
     this.playerCell = { i: 0, j: 0, cache: "" };
   }
 
+  //Factory for printing old cells or making new ones
   private getCanonicalCell(cell: Cell): Cell {
-    //console.log(cell.i, cell.j);
     const { i, j } = cell;
     const key = [i, j].toString();
     if (!this.knownCells.has(key)) {
       const c: Cell = { i: i, j: j, cache: "" };
       const seed: number = luck([i, j].toString());
+
+      //Cache creation process
       if (seed < this.cacheChance) {
         c.cache = this.getCoinCode(
           i,
@@ -48,10 +50,10 @@ export class Board {
       }
       this.knownCells.set(key, c);
     }
-    //console.log(this.knownCells.size);
     return this.knownCells.get(key)!;
   }
 
+  //Creates JSON-stringified array of unique coins of the format lat:lng#serial
   private getCoinCode(i: number, j: number, numCoins: number): string {
     const coins: string[] = [];
     for (let n = 0; n < numCoins; n++) {
@@ -95,8 +97,16 @@ export class Board {
     return resultCells;
   }
 
-  updateCacheCode(cell: Cell) {
-    const cCell: Cell = this.getCanonicalCell(cell);
-    cCell.cache = cell.cache;
+  //Functions for handling save data
+  saveBoard(): string {
+    return (JSON.stringify(Array.from(this.knownCells.entries())));
+  }
+
+  loadBoard(thawedMap: string) {
+    this.knownCells = new Map(JSON.parse(thawedMap));
+  }
+
+  wipeBoard() {
+    this.knownCells = new Map();
   }
 }

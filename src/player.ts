@@ -44,14 +44,17 @@ export class Player {
     this.marker = leaflet.marker(this.latlng);
     this.marker.bindTooltip("You are here.");
     this.marker.addTo(this.leafMap);
+    this.updateStatus();
   }
 
+  //Rounds a given latlng to the closest cell latlng
   private roundLL(pt: leaflet.latLng): leaflet.latLng {
     const rlat = roundDec(pt.lat, this.decimals);
     const rlng = roundDec(pt.lng, this.decimals);
     return (leaflet.latLng(rlat, rlng));
   }
 
+  //Functions for taking and recieving coins
   popCoin(): string {
     let outCoin = "InvalidCoin";
     if (this.coins.length > 0) {
@@ -79,6 +82,7 @@ export class Player {
     return (this.setPos());
   }
 
+  //sets the position of the player, returning true if they've entered a new cell
   setPos(LL?: leaflet.latLng): boolean {
     if (LL) {
       this.latlng = LL;
@@ -86,13 +90,9 @@ export class Player {
 
     this.marker.setLatLng(this.latlng);
 
-    //console.log(this.latlng)
-    //console.log(this.roundLL(this.latlng));
     const oldCellLatLng = this.cellLatlng;
     this.cellLatlng = this.roundLL(this.latlng);
 
-    console.log(this.cellLatlng);
-    console.log(oldCellLatLng);
     if (!this.cellLatlng.equals(oldCellLatLng)) {
       console.log("New Cell Entered");
       this.homeBoard.playerCell = this.homeBoard.getCellForPoint(
@@ -101,5 +101,30 @@ export class Player {
       return (true);
     }
     return (false);
+  }
+
+  //Save data handling functions
+  LLString(): string {
+    return (JSON.stringify([this.latlng.lat, this.latlng.lng]));
+  }
+
+  loadPos(pos: string) {
+    const posArr: number[] = JSON.parse(pos);
+    this.latlng = leaflet.latLng(posArr[0], posArr[1]);
+    this.setPos();
+  }
+
+  saveCoins(): string {
+    return (JSON.stringify(this.coins));
+  }
+
+  loadCoins(coinString: string) {
+    this.coins = JSON.parse(coinString);
+    this.updateStatus();
+  }
+
+  wipeCoins() {
+    this.coins = [];
+    this.updateStatus();
   }
 }

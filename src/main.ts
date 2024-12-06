@@ -14,16 +14,6 @@ import { Board } from "./board.ts";
 import { Player } from "./player.ts";
 import { Cache } from "./cache.ts";
 
-const app: HTMLDivElement = document.querySelector("#app")!;
-
-const testbutton: HTMLButtonElement = document.createElement("button");
-testbutton.innerHTML = "Click Here!";
-testbutton.onclick = function () {
-  alert("Hooray!");
-};
-
-app.append(testbutton);
-
 //Params
 const Oakes = leaflet.latLng(36.9894, -122.0627);
 const degPerTile: number = 1e-4;
@@ -75,10 +65,24 @@ const player = new Player(
 
 let geoPos = false;
 
+//Polyline setup
+const polyLine: leaflet.Polyline = leaflet.polyline([[
+  player.latlng.lat,
+  player.latlng.lng,
+]], { color: "blue" }).addTo(map);
+
 //initalize caches
 let Caches: Cache[] = [];
+
+//Loading save data
+load();
+
+//Place caches
 loadCaches(mainBoard, Oakes);
+
 requestAnimationFrame(realTimeUpdate);
+
+setInterval(save, 1000);
 
 //button setup. make this more elegant later
 const GeoBut = document.getElementById("sensor");
@@ -119,6 +123,20 @@ CamBut?.addEventListener("click", () => {
   map.panTo(player.latlng);
 });
 
+const HomeBut = document.getElementById("Home");
+HomeBut?.addEventListener("click", () => {
+  player.setPos(Oakes);
+  mapUpdate();
+  map.panTo(player.latlng);
+});
+
+const ClearBut = document.getElementById("Reset");
+ClearBut?.addEventListener("click", () => {
+  if (confirm("Erase all location history and return all coins?")) {
+    reset();
+  }
+});
+
 function realTimeUpdate() { //Called every frame, updates player position when geolocation enabled
   if (geoPos) {
     const geo = navigator.geolocation;
@@ -131,6 +149,7 @@ function realTimeUpdate() { //Called every frame, updates player position when g
   }
 }
 
+//Callbacks given success or failure ate acquiring geolocation
 function successCallback(position: GeolocationPosition) {
   const curPos: leaflet.LatLng = leaflet.latLng(
     position.coords.latitude,
@@ -150,6 +169,9 @@ function erroCallback(_error: GeolocationPositionError) {
 
 //Called whenever the player enters a new tile
 function mapUpdate() {
+  polyLine.addLatLng([player.latlng.lat, player.latlng.lng]);
+
+  console.log(polyLine.getLatLngs());
   unloadCaches();
   loadCaches(mainBoard, player.cellLatlng);
 }
@@ -160,7 +182,6 @@ function loadCaches(board: Board, point: leaflet.LatLng) {
   const cells: Cell[] = board.getCellsNearPoint(point);
   for (let c = 0; c < cells.length; c++) {
     if (cells[c].cache.length > 0) {
-      //createCache(board, cells[c]);
       Caches.push(
         new Cache(document, map, mainBoard, cells[c], player, degPerTile),
       );
@@ -174,4 +195,48 @@ function unloadCaches() {
     Caches[i].pack();
   }
   Caches = [];
+}
+
+//Save Management Functions
+
+function save() {
+  console.log("Saving.");
+  localStorage.setItem("Path", JSON.stringify(polyLine.getLatLngs()));
+  localStorage.setItem("Board", mainBoard.saveBoard());
+  localStorage.setItem("Position", player.LLString());
+  localStorage.setItem("Coins", player.saveCoins());
+}
+
+function load() {
+  const thawedPath = localStorage.getItem("Path");
+  if (thawedPath != null) {
+    polyLine.setLatLngs(JSON.parse(thawedPath));
+  }
+
+  const thawedMap = localStorage.getItem("Board");
+  if (thawedMap != null) {
+    console.log("found map in storage");
+    mainBoard.loadBoard(thawedMap);
+  }
+
+  const thawedPos = localStorage.getItem("Position");
+  if (thawedPos != null) {
+    console.log("found pos in storage");
+    player.loadPos(thawedPos);
+  }
+
+  const thawedCoins = localStorage.getItem("Coins");
+  if (thawedCoins != null) {
+    console.log("found coins in storage");
+    player.loadCoins(thawedCoins);
+  }
+}
+
+function reset() {
+  polyLine.setLatLngs([[player.latlng.lat, player.latlng.lng]]);
+  unloadCaches();
+  mainBoard.wipeBoard();
+  player.wipeCoins();
+  localStorage.clear();
+  loadCaches(mainBoard, player.cellLatlng);
 }
